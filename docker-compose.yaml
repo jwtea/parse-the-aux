@@ -7,9 +7,17 @@ services:
       - backend
     ports:
       - "8086:8086"
-      - "8083:8083"
     environment:
       - INFLUXDB_DB=aux
+  pta-grafana:
+    container_name: pta-grafana
+    image: grafana/grafana:5.4.3
+    networks:
+      - backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - pta-db
   pta-app:
     container_name: pta-app
     build: ./app

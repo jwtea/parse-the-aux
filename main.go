@@ -1,15 +1,14 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	"fmt"
 )
-
-type Item struct {
-	Key   string
-	Value string
-}
 
 func main() {
 	p := NewParser("aux-addon.lua")
-	log.Print(p.GetItems())
+
+	items := p.GetItems()
+	for i, wi := range items {
+		fmt.Printf("i:%d time:%v cValue:%d \n", i, wi.Timestamp, wi.MinBuyout)
+	}
 }

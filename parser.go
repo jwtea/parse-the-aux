@@ -2,10 +2,18 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"os"
+	"strconv"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
+
+type WowItem struct {
+	Timestamp time.Time
+	MinBuyout int32
+}
 
 type Parser struct {
 	scanner *bufio.Scanner
@@ -26,16 +34,19 @@ func NewParser(fname string) *Parser {
 }
 
 // GetItems from the file being scanned
-func (p *Parser) GetItems() (items []Item) {
+func (p *Parser) GetItems() (items []WowItem) {
 	if !p.FindHistoryStart() {
-		return []Item{}
+		return []WowItem{}
 	}
 
 	for p.scanner.Scan() {
 		if iRegexp.MatchString(p.scanner.Text()) {
-			log.Infof("Found match")
-			m := iRegexp.FindStringSubmatch(p.scanner.Text())
-			items = append(items, Item{m[1], m[2]})
+			wi, err := parseToWowItem(p.scanner.Text())
+			if err != nil {
+				log.Warn("cannot parse item")
+			} else {
+				items = append(items, *wi)
+			}
 		}
 
 		p.line++
@@ -55,4 +66,29 @@ func (p *Parser) FindHistoryStart() bool {
 		p.line++
 	}
 	return false
+}
+
+// parseToWowItem takes a string and checks for regex match on item history regex
+func parseToWowItem(s string) (*WowItem, error) {
+	m := ibRegexp.FindStringSubmatch(s)
+	if len(m) >= 2 {
+		ti, err := strconv.ParseInt(m[1], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		//todo null values should be stored?
+		mb, err := strconv.Atoi(m[2])
+		if err != nil {
+			mb = 0
+		}
+
+		i := WowItem{
+			Timestamp: time.Unix(ti, 0),
+			MinBuyout: int32(mb),
+		}
+		return &i, nil
+	}
+
+	return nil, errors.New("Invalid data")
 }

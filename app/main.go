@@ -1,5 +1,7 @@
 package main
 
+import log "github.com/sirupsen/logrus"
+
 func main() {
 	p := NewParser("aux-addon.lua")
 
@@ -8,7 +10,8 @@ func main() {
 	so := NewStoreOptions()
 	store := NewStore(so)
 
-	for i, wi := range items {
+	for _, wi := range items {
+		log.Infof("Item: %v", wi)
 		store.SaveItem(wi)
 	}
 }

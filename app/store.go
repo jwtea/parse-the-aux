@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/influxdata/influxdb/client/v2"
@@ -22,7 +23,7 @@ type StoreOptions struct {
 // NewStoreOptions with defaults
 func NewStoreOptions() StoreOptions {
 	return StoreOptions{
-		Address: "localhost:8086",
+		Address: "http://localhost:8086",
 		DBName:  "aux",
 	}
 }
@@ -48,8 +49,11 @@ func (s *Store) SaveItem(i WowItem) {
 		log.Fatal(err)
 	}
 
-	tags := map[string]string{}
+	tags := map[string]string{"itemID": i.ID}
+
 	var fields map[string]interface{}
+	idata, _ := json.Marshal(i)
+	json.Unmarshal(idata, &fields)
 
 	pt, err := idb.NewPoint("items", tags, fields, time.Now())
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 )
 
 type WowItem struct {
+	ID        string
 	Timestamp time.Time
 	MinBuyout int32
 }
@@ -71,22 +72,26 @@ func (p *Parser) FindHistoryStart() bool {
 // parseToWowItem takes a string and checks for regex match on item history regex
 func parseToWowItem(s string) (*WowItem, error) {
 	m := ibRegexp.FindStringSubmatch(s)
-	if len(m) >= 2 {
-		ti, err := strconv.ParseInt(m[1], 10, 64)
+
+	//Todo
+	if len(m) >= 4 {
+		ti, err := strconv.ParseInt(m[2], 10, 64)
 		if err != nil {
 			return nil, err
 		}
 
 		//todo null values should be stored?
-		mb, err := strconv.Atoi(m[2])
+		mb, err := strconv.Atoi(m[3])
 		if err != nil {
 			mb = 0
 		}
 
 		i := WowItem{
+			ID:        m[1],
 			Timestamp: time.Unix(ti, 0),
 			MinBuyout: int32(mb),
 		}
+
 		return &i, nil
 	}
 

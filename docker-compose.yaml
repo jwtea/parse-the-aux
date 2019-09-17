@@ -1,0 +1,20 @@
+version: "3.5"
+services:
+  pta-db:
+    container_name: pta-db
+    image: influxdb:1.7
+    networks:
+      - backend
+    ports:
+      - "8086:8086"
+  pta-app:
+    container_name: pta-app
+    build: ./app
+    image: pta/app
+    networks:
+      - backend
+    depends_on:
+      - pta-db
+networks:
+  backend:
+    driver: bridge

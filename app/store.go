@@ -23,7 +23,7 @@ type StoreOptions struct {
 // NewStoreOptions with defaults
 func NewStoreOptions() StoreOptions {
 	return StoreOptions{
-		Address: "http://localhost:8086",
+		Address: "http://pta-db:8086",
 		DBName:  "aux",
 	}
 }

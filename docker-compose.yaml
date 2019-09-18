@@ -9,6 +9,18 @@ services:
       - "8086:8086"
     environment:
       - INFLUXDB_DB=aux
+  pta-timescaledb:
+    container_name: pta-timescaledb
+    image: timescale/timescaledb:latest-pg10
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=timescale
+    networks:
+      - backend
+    ports:
+      - "5432:5432"
   pta-grafana:
     container_name: pta-grafana
     image: grafana/grafana:5.4.3

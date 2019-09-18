@@ -49,7 +49,7 @@ datasources:
     editable: true
   - name: Postgres
     type: postgres
-    url: localhost:5432
+    url: pta-timescaledb:5432
     database: timescale
     user: timescale
     secureJsonData:

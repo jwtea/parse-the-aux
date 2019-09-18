@@ -7,8 +7,7 @@ func main() {
 
 	items := p.GetItems()
 
-	so := NewStoreOptions()
-	store := NewStore(so)
+	store := NewPostgres()
 
 	for _, wi := range items {
 		log.Infof("Item: %v", wi)

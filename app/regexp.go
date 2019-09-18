@@ -8,4 +8,7 @@ var hRegexp = regexp.MustCompile(`\[\"history\"\]\ \= \{`)
 var iRegexp = regexp.MustCompile(`\[(.*)\] = \"(.*)\"`)
 
 // Buyout and timestamp condition
-var ibRegexp = regexp.MustCompile(`\["(\d*):0"\] = "(\d*)#(\d*)#(\d*)@(\d*);`)
+var buyoutRegexp = regexp.MustCompile(`\["(\d*):0"\] = "(\d*)#(\d*)#.*\"`)
+
+// Sale condition
+var saleRegexp = regexp.MustCompile(`\["(\d*):0"\] = "\d*#\d*#(.*)\"`)

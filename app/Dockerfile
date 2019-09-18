@@ -1,4 +1,5 @@
 FROM golang:1.12 AS builder
+
 COPY . /build/
 WORKDIR /build/
 RUN go build -mod=vendor .

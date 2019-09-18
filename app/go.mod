@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/influxdata/influxdb v1.7.8
-	github.com/influxdata/influxdb-client-go v0.0.1
+	github.com/influxdata/influxdb-client-go v0.0.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0 // indirect

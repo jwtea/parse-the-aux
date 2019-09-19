@@ -8,16 +8,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type DataPoint struct{
-	gorm.Model
+type DataPoint struct {
 	Time        time.Time
 	Realm       string // realm data was recorded on
 	Faction     string // auction house faction: [A, H, N]
-	Reporter    string // uploader user or character, havent decided	
+	Reporter    string // uploader user or character, havent decided
 	DataType    string // [observed_buyout, reported_sale]
 	ItemID      string
 	ItemName    string
-	CopperValue int32  // 1 = 1 copper
+	CopperValue int32 // 1 = 1 copper
 }
 
 type Postgres struct {
@@ -25,7 +24,7 @@ type Postgres struct {
 }
 
 // NewStore configured from store option values
-func NewPostgres() (*Postgres)  {
+func NewPostgres() *Postgres {
 	gorm, err := gorm.Open("postgres", "postgres://timescale:password@localhost/timescale?sslmode=disable")
 	if err != nil {
 		log.Fatal(err)

@@ -2,11 +2,13 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
-	"time"
-	"fmt"
 	"strings"
+	"time"
+
+	errors "golang.org/x/xerrors"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -29,46 +31,63 @@ func NewParser(fname string) *Parser {
 	return &Parser{scanner: scanner, line: 0}
 }
 
-// GetItems from the file being scanned
-func (p *Parser) GetItems() (items []*DataPoint) {
-	if !p.FindHistoryStart() {
-		log.Error("Could not find start of history from aux lua")
-		return nil
+// GetData returns buyout items and recorded sales
+func (p *Parser) GetData() (recordedSales []*RecordedSale, observedBuyouts []*ObservedBuyout, err error) {
+	idNameMap, ok := p.FindIDNameMap(hRegexp.MatchString)
+	if !ok {
+		return nil, nil, errors.New("Cannot find start of items from aux lua")
 	}
 
 	for p.scanner.Scan() {
 		p.line++
-
 		if iRegexp.MatchString(p.scanner.Text()) {
-		  items = append(items, parseDataPoints(p.scanner.Text())...)
+			rs, pErr := parseRecordedSalePoints(idNameMap, p.scanner.Text())
+			if pErr != nil {
+				log.Warn(pErr)
+			} else {
+				recordedSales = append(recordedSales, rs...)
+			}
+
+			bo, pErr := parseBuyoutPoints(idNameMap, p.scanner.Text())
+			if pErr != nil {
+				log.Warn(pErr)
+			} else {
+				observedBuyouts = append(observedBuyouts, bo)
+			}
 		}
 	}
 
-	return items
+	return recordedSales, observedBuyouts, err
 }
 
-// FindHistoryStart proceeds through scanner util matching on the history regex
-func (p *Parser) FindHistoryStart() bool {
+// FindIDNameMap returns a map of any name -> id data found in file until
+// the stop condition.
+func (p *Parser) FindIDNameMap(stopCheck matchCondition) (idNameMap map[string]string, ok bool) {
+	idNameMap = make(map[string]string)
 	for p.scanner.Scan() {
-		if hRegexp.MatchString(p.scanner.Text()) {
-			p.line++
-			return true
-		}
 		p.line++
+		if itemNameRegexp.MatchString(p.scanner.Text()) {
+			id, name, pErr := parseItemName(p.scanner.Text())
+			if pErr != nil {
+				log.Warn(pErr)
+			} else {
+				idNameMap[id] = name
+			}
+		}
+		// Scan until we find our match condition
+		if stopCheck(p.scanner.Text()) == true {
+			break
+		}
 	}
-	return false
+
+	if len(idNameMap) == 0 {
+		return idNameMap, false
+	}
+
+	return idNameMap, true
 }
 
-func defaultReportData() (string, string, string) {
-	realm := "mograine"
-	faction := "A"
-	reporter := "anonymous"
-	return realm, faction, reporter
-}
-
-func parseBuyoutPoints(line string) ([]*DataPoint, error) {
-	realm, faction, reporter := defaultReportData() //todo
-	items := make([]*DataPoint, 0)
+func parseBuyoutPoints(idNameMap map[string]string, line string) (*ObservedBuyout, error) {
 	matches := buyoutRegexp.FindStringSubmatch(line)
 	if len(matches) != 4 || len(matches[3]) == 0 {
 		return nil, fmt.Errorf("could not parse buyout point `%s`. parsed: `%+v`", matches[0], matches[1:len(matches)-1])
@@ -86,24 +105,20 @@ func parseBuyoutPoints(line string) ([]*DataPoint, error) {
 		return nil, err
 	}
 
-	//Todo
-	buyoutItem := &DataPoint{
-		Time:        time.Unix(timestamp, 0),
-		DataType:    "min_buyout",
-		Realm:       realm,
-		Faction:     faction,
-		Reporter:    reporter,
-		ItemID:      itemID,
-		ItemName:    "Unknown",
-		CopperValue: int32(buyoutCopper),
+	buyoutItem := &ObservedBuyout{
+		TimescaleRecord{
+			Time:        time.Unix(timestamp, 0),
+			ItemID:      itemID,
+			ItemName:    idNameMap[itemID],
+			CopperValue: int32(buyoutCopper),
+		},
 	}
 
-	return append(items, buyoutItem), nil
+	return buyoutItem, nil
 }
 
-func parseSalePoints(line string) ([]*DataPoint, error) {
-	realm, faction, reporter := defaultReportData() // todo
-	items := make([]*DataPoint, 0)
+func parseRecordedSalePoints(idNameMap map[string]string, line string) ([]*RecordedSale, error) {
+	items := make([]*RecordedSale, 0)
 	matches := saleRegexp.FindStringSubmatch(line)
 	if len(matches) != 3 {
 		return nil, fmt.Errorf("could not parse sale points. parsed: `%+v`", matches)
@@ -121,27 +136,25 @@ func parseSalePoints(line string) ([]*DataPoint, error) {
 
 		if len(splitSale) < 2 {
 			return nil, fmt.Errorf("could not split recorded sale `%s`", s)
-		}		
+		}
 
 		timestamp, err := strconv.ParseInt(splitSale[1], 10, 64)
 		if err != nil {
 			return nil, err
 		}
-	
+
 		saleCopper, err := strconv.Atoi(splitSale[0])
 		if err != nil {
 			return nil, err
 		}
 
-		saleItem := &DataPoint{
-			Time:        time.Unix(timestamp, 0),
-			DataType:    "recorded_sale",
-			Realm:       realm,
-			Faction:     faction,
-			Reporter:    reporter,
-			ItemID:      itemID,
-			ItemName:    "Unknown",
-			CopperValue: int32(saleCopper),
+		saleItem := &RecordedSale{
+			TimescaleRecord{
+				Time:        time.Unix(timestamp, 0),
+				ItemID:      itemID,
+				ItemName:    idNameMap[itemID],
+				CopperValue: int32(saleCopper),
+			},
 		}
 
 		items = append(items, saleItem)
@@ -150,22 +163,10 @@ func parseSalePoints(line string) ([]*DataPoint, error) {
 	return items, nil
 }
 
-// parseDataPoints takes a string and checks for regex match on DataPoint history regex
-func parseDataPoints(s string) []*DataPoint {
-	points, err := parseSalePoints(s)
-	if err != nil {
-		log.Error(err, s)
+func parseItemName(line string) (string, string, error) {
+	matches := itemNameRegexp.FindStringSubmatch(line)
+	if len(matches) != 3 {
+		return "", "", fmt.Errorf("could not parse item name. parsed: `%+v`", matches)
 	}
-
-	buyoutPoints, err := parseBuyoutPoints(s)
-	if err != nil {
-		log.Error(err, s)
-	}
-
-	for _, b := range buyoutPoints {
-		points = append(points, b)
-	}
-
-	log.Info(fmt.Sprintf("Parsed %d data points.", len(points)))
-	return points
+	return matches[2], matches[1], nil
 }

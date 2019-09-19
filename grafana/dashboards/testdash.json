@@ -33,7 +33,7 @@
       },
       "id": 2,
       "legend": {
-        "alignAsTable": false,
+        "alignAsTable": true,
         "avg": true,
         "current": true,
         "max": true,
@@ -79,7 +79,7 @@
           "orderByTime": "ASC",
           "policy": "default",
           "rawQuery": true,
-          "rawSql": "SELECT \n  \"time\" as \"time\",\n  data_type as metric,\n  avg(copper_value) as \"copper_value\"\nFROM data_points\nWHERE\n  $__timeFilter(\"time\") and\n  data_type = 'recorded_sale' and\n  item_id = '6358'\nGROUP BY item_id, time, 2\norder by 1,2",
+          "rawSql": "SELECT \n  \"time\" as \"time\",\n  avg(copper_value) as \"copper_value\"\nFROM recorded_sales\nWHERE\n  $__timeFilter(\"time\") and\n  item_name = 'Oily Blackmouth'\nGROUP BY item_name, time\norder by 1,2",
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -117,7 +117,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT \n  \"time\" as \"time\",\n  data_type as metric,\n  avg(copper_value) as \"copper_value\"\nFROM data_points\nWHERE\n  $__timeFilter(\"time\") and\n  data_type = 'min_buyout' and\n  item_id = '6358'\nGROUP BY item_id, time, 2\norder by 1,2",
+          "rawSql": "SELECT \n  \"time\" as \"time\",\n  avg(copper_value) as \"copper_value\"\nFROM observed_buyouts\nWHERE\n  $__timeFilter(\"time\") and\n  item_name = 'Oily Blackmouth'\nGROUP BY item_name, time\norder by 1,2",
           "refId": "B",
           "select": [
             [

@@ -1,9 +1,17 @@
 package main
 
-import log "github.com/sirupsen/logrus"
+import (
+	"os"
+	log "github.com/sirupsen/logrus"
+)
 
 func main() {
-	p := NewParser("aux-addon.lua")
+	f := os.Getenv("LUA_FILE")
+	if len(f) == 0 {
+		f = "aux-addon.lua"
+	}
+
+	p := NewParser(f)
 
 	recordedSales, observedBuyouts, err := p.GetData()
 	if err != nil {

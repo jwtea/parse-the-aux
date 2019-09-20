@@ -107,6 +107,7 @@ func parseBuyoutPoints(idNameMap map[string]string, line string) (*ObservedBuyou
 
 	buyoutItem := &ObservedBuyout{
 		TimescaleRecord{
+			ID:          getHash32(strings.Join([]string{matches[2], itemID, matches[3]}, "-")),
 			Time:        time.Unix(timestamp, 0),
 			ItemID:      itemID,
 			ItemName:    idNameMap[itemID],
@@ -150,6 +151,7 @@ func parseRecordedSalePoints(idNameMap map[string]string, line string) ([]*Recor
 
 		saleItem := &RecordedSale{
 			TimescaleRecord{
+				ID:          getHash32(strings.Join([]string{splitSale[1], itemID, splitSale[0]}, "-")),
 				Time:        time.Unix(timestamp, 0),
 				ItemID:      itemID,
 				ItemName:    idNameMap[itemID],

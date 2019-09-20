@@ -9,7 +9,7 @@ import (
 )
 
 type TimescaleRecord struct {
-	ID          uint `gorm:"primary_key"`
+	ID          uint32 `gorm:"primary_key"`
 	Time        time.Time
 	ItemID      string
 	ItemName    string

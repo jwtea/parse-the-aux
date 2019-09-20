@@ -47,7 +47,7 @@ datasources:
     version: 1
     # <bool> allow users to edit datasources from the UI.
     editable: true
-  - name: Postgres
+  - name: Timescaledb
     type: postgres
     url: pta-timescaledb:5432
     database: timescale

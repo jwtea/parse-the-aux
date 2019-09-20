@@ -22,7 +22,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Postgres",
+      "datasource": "Timescaledb",
       "description": "Oily Blackmouth",
       "fill": 1,
       "gridPos": {
@@ -187,7 +187,36 @@
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "tags": [],
+          "text": "Oily Blackmouth",
+          "value": [
+            "Oily Blackmouth"
+          ]
+        },
+        "datasource": "Timescaledb",
+        "definition": "select distinct item_name from observed_buyouts",
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": true,
+        "name": "item_name",
+        "options": [],
+        "query": "select distinct item_name from observed_buyouts",
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
   },
   "time": {
     "from": "now/M",
